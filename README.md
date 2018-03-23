@@ -1,0 +1,2 @@
+# goup
+go version updater
