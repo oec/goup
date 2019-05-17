@@ -6,15 +6,15 @@ Usage: goup [version]
 
 Parameters:
 
-  -arch string
-    	architecture to install (default "amd64")
-  -dst string
-    	directory to install go to (default "/opt")
-  -n	dry run, don't install
-  -os string
-    	OS to install (default "linux")
-  -url string
-    	download-url (default "https://dl.google.com/go/")
+   -arch string
+     	architecture to install (default "amd64")
+   -dst string
+     	directory to install go to (default "/opt")
+   -n	dry run, don't install
+   -os string
+     	OS to install (default "linux")
+   -url string
+     	download-url (default "https://dl.google.com/go/")
 
 Output:
 
