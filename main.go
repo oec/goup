@@ -3,6 +3,8 @@ package main
 import (
 	"archive/tar"
 	"compress/gzip"
+	"crypto/sha256"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -14,22 +16,84 @@ import (
 	"strings"
 )
 
+type VersionInfo struct {
+	Stable  bool   `json:"stable"`
+	Version string `json:"version"`
+	Files   []struct {
+		Arch     string `json:"arch"`
+		Filename string `json:"filename"`
+		Kind     string `json:"kind"`
+		Os       string `json:"os"`
+		Sha256   string `json:"sha256"`
+		Size     int    `json:"size"`
+		Version  string `json:"version"`
+	} `json:"files"`
+}
+
+const VersionsURL = "https://golang.org/dl/?mode=json"
+
 var (
 	// https://dl.google.com/go/go1.10.linux-amd64.tar.gz
-	dlurl   = flag.String("url", "https://dl.google.com/go/", "download-url")
-	dst     = flag.String("dst", "/opt", "directory to install go to")
-	version = ""
+
+	dlurl = flag.String("url", "https://dl.google.com/go/", "download-url")
+	dst   = flag.String("dst", "/opt", "directory to install go to")
+	zos   = flag.String("os", runtime.GOOS, "OS to install")
+	arch  = flag.String("arch", runtime.GOARCH, "architecture to install")
+	dry   = flag.Bool("n", false, "dry run, don't install")
 )
 
 func main() {
 	flag.Parse()
 
-	version = flag.Arg(0)
-	if len(version) == 0 {
-		log.Fatal("version needed")
+	r, e := http.Get(VersionsURL)
+	if e != nil {
+		log.Fatal(e)
+	}
+	defer r.Body.Close()
+
+	var (
+		index    int
+		version  string
+		filename string
+		hash     string
+		found    bool
+		versions = []VersionInfo{}
+	)
+
+	dec := json.NewDecoder(r.Body)
+	if e = dec.Decode(&versions); e != nil {
+		log.Fatal(e)
 	}
 
-	filename := fmt.Sprintf("go%s.%s-%s.tar.gz", version, runtime.GOOS, runtime.GOARCH)
+	if version = flag.Arg(0); len(version) != 0 {
+		for i := range versions {
+			if versions[i].Version == version {
+				index = i
+				found = true
+				break
+			}
+		}
+		if !found {
+			log.Fatal("no such version: ", version)
+		}
+	} else {
+		version = versions[index].Version
+	}
+
+	log.Println("using version", version)
+
+	found = false
+	for _, f := range versions[index].Files {
+		if f.Arch == *arch && f.Os == *zos {
+			filename = f.Filename
+			hash = f.Sha256
+			found = true
+			break
+		}
+	}
+	if !found {
+		log.Fatal("no such architecture+os: ", *arch, "+", *zos)
+	}
 
 	var (
 		err   error
@@ -63,10 +127,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("Unpacking", filename)
-	err = untar("go"+version, targz)
+	log.Println("Checking Signature", filename)
+	hasher := sha256.New()
+	_, err = io.Copy(hasher, targz)
 	if err != nil {
 		log.Fatal(err)
+	} else if hval := fmt.Sprintf("%x", hasher.Sum(nil)); hval != hash {
+		log.Fatal("sha256 mismatch! Expected ", hash, ", but got ", hval)
+	}
+
+	_, err = targz.Seek(0, 0)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Unpacking", filename)
+	err = untar(version, targz)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if *dry {
+		log.Println("not going any further")
+		return
 	}
 
 	log.Println("Creating symlink go →", "go"+version)
@@ -74,7 +157,7 @@ func main() {
 		os.Remove("go") // just try to delete the existing link.
 	}
 
-	err = os.Symlink("go"+version, "go")
+	err = os.Symlink(version, "go")
 	if err != nil {
 		log.Fatal(err)
 	}
