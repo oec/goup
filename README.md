@@ -6,6 +6,7 @@ Usage: goup [version]
 
 Parameters:
 
+```
    -arch string
      	architecture to install (default "amd64")
    -dst string
@@ -15,6 +16,7 @@ Parameters:
      	OS to install (default "linux")
    -url string
      	download-url (default "https://dl.google.com/go/")
+```
 
 Output:
 
