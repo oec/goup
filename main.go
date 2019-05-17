@@ -152,7 +152,7 @@ func main() {
 		return
 	}
 
-	log.Println("Creating symlink go →", "go"+version)
+	log.Println("Creating symlink go →", version)
 	if inf, err := os.Lstat("go"); err == nil && inf.Mode()&os.ModeSymlink != 0 {
 		os.Remove("go") // just try to delete the existing link.
 	}
