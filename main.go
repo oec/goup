@@ -80,7 +80,12 @@ func main() {
 		version = versions[index].Version
 	}
 
-	log.Println("using version", version)
+	if version == runtime.Version() {
+		fmt.Println("version", version, "is already the current version")
+		return
+	}
+
+	fmt.Println("using version", version)
 
 	found = false
 	for _, f := range versions[index].Files {
@@ -111,7 +116,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("Downloading", *dlurl+filename)
+	fmt.Println("Downloading", *dlurl+filename)
 	resp, err = http.Get(*dlurl + filename)
 	if err != nil {
 		log.Fatal(err)
@@ -127,7 +132,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("Checking Signature", filename)
+	fmt.Println("Checking Signature", filename)
 	hasher := sha256.New()
 	_, err = io.Copy(hasher, targz)
 	if err != nil {
@@ -141,18 +146,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("Unpacking", filename)
+	fmt.Println("Unpacking", filename)
 	err = untar(version, targz)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if *dry {
-		log.Println("not going any further")
+		fmt.Println("not going any further")
 		return
 	}
 
-	log.Println("Creating symlink go →", version)
+	fmt.Println("Creating symlink go →", version)
 	if inf, err := os.Lstat("go"); err == nil && inf.Mode()&os.ModeSymlink != 0 {
 		os.Remove("go") // just try to delete the existing link.
 	}
@@ -162,7 +167,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("Ugprade to", version, "done.")
+	fmt.Println("Ugprade to", version, "done.")
 }
 
 func untar(dst string, r io.Reader) error {
