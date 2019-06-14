@@ -20,11 +20,11 @@ Parameters:
 
 Output:
 
-     % ./goup
-    2019/05/17 12:04:06 using version go1.12.5
-    2019/05/17 12:04:06 Downloading https://dl.google.com/go/go1.12.5.linux-amd64.tar.gz
-    2019/05/17 12:04:43 Checking Signature go1.12.5.linux-amd64.tar.gz
-    2019/05/17 12:04:44 Unpacking go1.12.5.linux-amd64.tar.gz
-    2019/05/17 12:04:49 Creating symlink go → go1.12.5
-    2019/05/17 12:04:49 Ugprade to go1.12.5 done.
+	 % goup        
+	Using version go1.12.6
+	Downloading https://dl.google.com/go/go1.12.6.linux-amd64.tar.gz
+	Checking Signature go1.12.6.linux-amd64.tar.gz
+	Unpacking go1.12.6.linux-amd64.tar.gz
+	Creating symlink go → go1.12.6
+	Ugprade to go1.12.6 done.
 
