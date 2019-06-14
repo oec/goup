@@ -1,6 +1,6 @@
 # goup - An updater for go
 
-Download and install a version of go under `/opt` as a symlink <tt>/opt/go → /opt/go<i>version</i></tt>
+Download and install a version of go under `/opt` as a symlink <tt>/opt/go → /opt/<i>version</i></tt>
 
 Usage: goup [version]
 
