@@ -74,18 +74,23 @@ func main() {
 			}
 		}
 		if !found {
-			log.Fatal("no such version: ", version)
+			fmt.Println("No such version:", version)
+			fmt.Println("Only the following version are available:")
+			for _, v := range versions {
+				fmt.Println("\t" + v.Version)
+			}
+			os.Exit(1)
 		}
 	} else {
 		version = versions[index].Version
 	}
 
 	if version == runtime.Version() {
-		fmt.Println("version", version, "is already the current version")
+		fmt.Println("Version", version, "is already the current version")
 		return
 	}
 
-	fmt.Println("using version", version)
+	fmt.Println("Using version", version)
 
 	found = false
 	for _, f := range versions[index].Files {
@@ -97,7 +102,8 @@ func main() {
 		}
 	}
 	if !found {
-		log.Fatal("no such architecture+os: ", *arch, "+", *zos)
+		fmt.Println("No such architecture+os:", *arch, "+", *zos)
+		os.Exit(1)
 	}
 
 	var (
@@ -153,7 +159,7 @@ func main() {
 	}
 
 	if *dry {
-		fmt.Println("not going any further")
+		fmt.Println("Not going any further")
 		return
 	}
 
