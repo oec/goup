@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/json"
@@ -11,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -85,7 +87,12 @@ func main() {
 		version = versions[index].Version
 	}
 
-	if version == runtime.Version() {
+	localVersion, err := getVersion()
+	if err != nil {
+		fmt.Println("Difficulties getting version of locally installed go:", err)
+	}
+
+	if version == localVersion {
 		fmt.Println("Version", version, "is already the current version")
 		return
 	}
@@ -107,7 +114,6 @@ func main() {
 	}
 
 	var (
-		err   error
 		resp  *http.Response
 		targz *os.File
 	)
@@ -235,5 +241,18 @@ func untar(dst string, r io.Reader) error {
 			}
 			f.Close()
 		}
+	}
+}
+
+func getVersion() (string, error) {
+	cmd := exec.Command("go", "version")
+	if b, e := cmd.Output(); e != nil {
+		return "", e
+	} else {
+		fields := bytes.Fields(b)
+		if len(fields) < 3 || !bytes.HasPrefix(b, []byte("go")) {
+			return "", fmt.Errorf("unexpected output from `go version`: %#q", string(b))
+		}
+		return string(fields[2]), nil
 	}
 }
